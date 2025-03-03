@@ -4,15 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PROJECTS</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
     <style>
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             background-color: #f4f4f9;
             font-family: 'Arial', sans-serif;
             margin: 0;
+            text-align: center;
         }
         .container {
             max-width: 600px;
@@ -20,25 +23,72 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
+            margin-bottom: 20px;
         }
         p {
             font-size: 18px;
             line-height: 1.6;
             color: #333;
         }
+        svg { display: block; margin: auto; }
     </style>
 </head>
 <body>
     <div class="container">
         <p>
             EduConnect LMS – Led the development of an online learning management system featuring real-time collaboration capabilities and learner-focused learning analytics. The product was adopted by several institutions of learning, enhancing remote learning experiences for thousands of learners.
-
-AdFlow Optimization Engine – Developed and installed a horizontally scalable ad server platform that automatically optimized ad placements through user interaction data. This increased ad revenue by 35% and improved targeting of digital campaigns.
-
-Starnberg Smart City Dashboard – Developed a data-driven dashboard for city planners to monitor infrastructure efficiency and optimization of public services. The platform provided real-time analysis of transportation, energy consumption, and environmental impact, which further aided in smarter city planning.
+            <br><br>
+            AdFlow Optimization Engine – Developed and installed a horizontally scalable ad server platform that automatically optimized ad placements through user interaction data. This increased ad revenue by 35% and improved targeting of digital campaigns.
+            <br><br>
+            Starnberg Smart City Dashboard – Developed a data-driven dashboard for city planners to monitor infrastructure efficiency and optimization of public services. The platform provided real-time analysis of transportation, energy consumption, and environmental impact, which further aided in smarter city planning.
         </p>
     </div>
+    <h1>My Most Worked On Projects</h1>
+    <script>
+        const width = 928;
+        const height = width;
+        const radius = width / 6;
+
+        const data = {
+            "name": "Projects",
+            "children": [
+                { "name": "EDUconnectLMS", "value": 23 },
+                { "name": "AdFlowOptimizationEngine", "value": 35 },
+                { "name": "StarnbergSmartCityDashboard", "value": 42 }
+            ]
+        };
+
+        const color = d3.scaleOrdinal(d3.quantize(d3.interpolateRainbow, data.children.length + 1));
+        const hierarchy = d3.hierarchy(data)
+            .sum(d => d.value)
+            .sort((a, b) => b.value - a.value);
+        const root = d3.partition()
+            .size([2 * Math.PI, hierarchy.height + 1])
+            (hierarchy);
+        root.each(d => d.current = d);
+
+        const arc = d3.arc()
+            .startAngle(d => d.x0)
+            .endAngle(d => d.x1)
+            .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005))
+            .padRadius(radius * 1.5)
+            .innerRadius(d => d.y0 * radius)
+            .outerRadius(d => Math.max(d.y0 * radius, d.y1 * radius - 1));
+
+        const svg = d3.select("body").append("svg")
+            .attr("viewBox", [-width / 2, -height / 2, width, width])
+            .style("font", "10px sans-serif");
+
+        const path = svg.append("g")
+            .selectAll("path")
+            .data(root.descendants().slice(1))
+            .join("path")
+            .attr("fill", d => { while (d.depth > 1) d = d.parent; return color(d.data.name); })
+            .attr("d", d => arc(d.current));
+
+        path.append("title")
+            .text(d => `${d.ancestors().map(d => d.data.name).reverse().join("/")}
+${d.value}%`);
+    </script>
 </body>
 </html>
-
